@@ -6,6 +6,7 @@ rm(list=ls())
 #################
 # # to download & load human counts and metadata
 wd <- "~/Downloads/analysis_dir"
+#wd <- "/users/andrew leader/Downloads/analysis_dir"
 
 if(!dir.exists(wd)){
   dir.create(wd)
@@ -72,18 +73,19 @@ CD80_expr_mat[CD80_expr_mat<1e-6] <- 1e-6
 tab <- table(human_tumor_scdata$cell_to_patient,human_tumor_scdata$cell_to_sub_lineage)
 
 for(sub_lin in colnames(PDL1_expr_mat)){
-  PDL1_expr_mat[tab[rownames(PDL1_expr_mat),sub_lin]<20,sub_lin] <- NA
-  CD80_expr_mat[tab[rownames(CD80_expr_mat),sub_lin]<20,sub_lin] <- NA
+  PDL1_expr_mat[tab[rownames(PDL1_expr_mat),sub_lin]<10,sub_lin] <- NA
+  CD80_expr_mat[tab[rownames(CD80_expr_mat),sub_lin]<10,sub_lin] <- NA
 }
 
 
 
 #current
 annots_ord <- c("AM","IM","MoMac","CD14 Mono","CD16 Mono","moDC","DC2","Mature DC","DC1")
+N <- colSums(tab[rownames(PDL1_expr_mat),annots_ord]>=10)
 
 plot_open <-function(fn){
-  pdf(fn,height=4,width=4)
-  par(mgp=c(2,1,0))
+  pdf(fn,height=4,width=5)
+  par(mgp=c(2,1,0),oma=c(2,0,0,0))
 }
 
 plot_open(fn=file.path(wd,"PDL1_fraction.pdf"))
@@ -110,9 +112,11 @@ plot_open(fn=file.path(wd,"PDL1_exprs.pdf"))
 boxplot.matrix(log10(PDL1_expr_mat[,annots_ord]),
                boxwex=.5,las=2,range=0,frame=FALSE,border="red",ylim=c(-6,-3),xaxt="n",yaxt="n",pars=list(lty=1))
 mtext(expression("Log"["10"]*"("*italic("CD274")*" counts/total RNA)"),side=2,line=2.5)
-axis(side=2,at=c(-6:-3),labels=c("< -6",-5:-3),las=2)
+axis(side=2,at=c(-6:-3),labels=c("<-6",-5:-3),las=2)
 mtext(expression(italic("CD274")*" expression per cell type"))
-mtext(annots_ord,side=1,las=2,at=seq(length(annots_ord)))
+for(x in seq(length(N))){
+  mtext(bquote(.(annots_ord[x])["N="*.(N[x])]),side=1,las=2,at=x)
+}
 dev.off()
 
 
@@ -120,8 +124,10 @@ plot_open(fn=file.path(wd,"CD80_exprs.pdf"))
 boxplot.matrix(log10(CD80_expr_mat[,annots_ord]),
                boxwex=.5,las=2,range=0,frame=FALSE,border="red",ylim=c(-6,-3),xaxt="n",yaxt="n",pars=list(lty=1))
 mtext(expression("Log"["10"]*"("*italic("CD80")*" counts/total RNA)"),side=2,line=2.5)
-axis(side=2,at=c(-6:-3),labels=c("< -6",-5:-3),las=2)
+axis(side=2,at=c(-6:-3),labels=c("<-6",-5:-3),las=2)
 mtext(expression(italic("CD80")*" expression per cell type"))
-mtext(annots_ord,side=1,las=2,at=seq(length(annots_ord)))
+for(x in seq(length(N))){
+  mtext(bquote(.(annots_ord[x])["N="*.(N[x])]),side=1,las=2,at=x)
+}
 dev.off()
 
